@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import ItemListContainer from './components/ItemListContainer';
 import ItemDetailContainer from './components/ItemDetailContainer';
@@ -7,7 +7,7 @@ import ReservaForm from './components/ReservaForm';
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <NavBar />
       <ItemListContainer />
       <Routes>
@@ -17,7 +17,7 @@ function App() {
         <Route path="/reserva" element={<ReservaForm />} />
         <Route path="*" element={<h2 style={{ padding: '1rem' }}>404 - Página no encontrada</h2>} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
