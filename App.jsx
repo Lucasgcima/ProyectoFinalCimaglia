@@ -18,6 +18,7 @@ function App() {
         <Route path="/item/:id" element={<ItemDetailContainer />} />
         <Route path="/reserva" element={<ReservaForm />} />
         <Route path="*" element={<h2 style={{ padding: '1rem' }}>404 - Página no encontrada</h2>} />
+        <Route path="/category/:categoryId" element={<Category />} />npm run build
       </Routes>
     </HashRouter>
   );
