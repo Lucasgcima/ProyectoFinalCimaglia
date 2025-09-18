@@ -1,15 +1,36 @@
-import React from 'react';
+import { useContext, useState } from "react";
+import { CartContext } from "../../context/CartContext";
+import ItemCount from "../ItemCount/ItemCount";
+import { Link } from "react-router-dom";
 
 const ItemDetail = ({ product }) => {
-  if (!product) return <p>Producto no encontrado</p>;
+  const { addToCart } = useContext(CartContext);
+  const [addedToCart, setAddedToCart] = useState(false);
+
+  const handleAdd = (quantity) => {
+    addToCart(product, quantity);
+    setAddedToCart(true);
+  };
+
+  if (!product) {
+    return <p>Cargando producto...</p>;
+  }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: "20px" }}>
       <h2>{product.title}</h2>
-      <img src={product.image} alt={product.title} width="200" />
+      <img src={product.image} alt={product.title} style={{ width: "200px" }} />
       <p>{product.description}</p>
-      <p><strong>Precio:</strong> ${product.price}</p>
-      <p><strong>Categoría:</strong> {product.category}</p>
+      <p>Precio: ${product.price}</p>
+      <p>Stock disponible: {product.stock}</p>
+
+      {addedToCart ? (
+        <Link to="/cart">
+          <button>Ir al carrito</button>
+        </Link>
+      ) : (
+        <ItemCount stock={product.stock} onAdd={handleAdd} />
+      )}
     </div>
   );
 };
