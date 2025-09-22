@@ -5,36 +5,32 @@ import { db } from "../firebase/firebaseConfig";
 import ItemDetail from "./ItemDetail";
 
 const ItemDetailContainer = () => {
-  const [item, setItem] = useState(null);
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { id } = useParams();
+  const { productId } = useParams();
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const docRef = doc(db, "productos", id);
-        const docSnap = await getDoc(docRef);
+    const docRef = doc(db, "products", productId);
 
-        if (docSnap.exists()) {
-          setItem({ id: docSnap.id, ...docSnap.data() });
+    getDoc(docRef)
+      .then((res) => {
+        if (res.exists()) {
+          setProduct({ id: res.id, ...res.data() });
         } else {
-          console.warn("Producto no encontrado");
-          setItem(null);
+          console.log("Producto no encontrado");
         }
-      } catch (error) {
-        console.error("Error al traer el producto:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
+      })
+      .catch((error) => {
+        console.error("Error al obtener el producto:", error);
+      })
+      .finally(() => setLoading(false));
+  }, [productId]);
 
   if (loading) return <p>Cargando producto...</p>;
-  if (!item) return <p>Producto no encontrado.</p>;
 
-  return <ItemDetail {...item} />;
+  if (!product) return <p>Producto no encontrado</p>;
+
+  return <ItemDetail product={product} />;
 };
 
 export default ItemDetailContainer;
