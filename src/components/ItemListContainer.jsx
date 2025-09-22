@@ -1,34 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { getProducts } from '../data/products';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import ItemList from "./ItemList";
 
 const ItemListContainer = () => {
-  const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { categoryId } = useParams();
 
   useEffect(() => {
-    getProducts()
-      .then((data) => {
-        setProducts(data);
-      })
-      .catch((error) => {
-        console.error("Error al obtener los productos:", error);
-      });
-  }, []);
+    const fetchItems = async () => {
+      setLoading(true);
+      try {
+        const collectionRef = collection(db, "productos");
+        const q = categoryId
+          ? query(collectionRef, where("category", "==", categoryId))
+          : collectionRef;
 
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h2>Listado de productos</h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-        {products.map((product) => (
-          <div key={product.id} style={{ border: '1px solid #ccc', padding: '1rem', width: '200px' }}>
-            <img src={product.image} alt={product.title} style={{ width: '100%' }} />
-            <h3>{product.title}</h3>
-            <p>{product.description}</p>
-            <strong>${product.price}</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        const querySnapshot = await getDocs(q);
+
+        const productos = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setItems(productos);
+      } catch (error) {
+        console.error("Error al obtener productos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, [categoryId]);
+
+  if (loading) return <p>Cargando productos...</p>;
+
+  if (items.length === 0) return <p>No hay productos en esta categoría.</p>;
+
+  return <ItemList items={items} />;
 };
 
 export default ItemListContainer;

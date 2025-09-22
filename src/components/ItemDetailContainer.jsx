@@ -1,45 +1,40 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import products from '../data/products';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import ItemDetail from "./ItemDetail";
 
-function ItemDetailContainer() {
-  const { id } = useParams();
-  const [producto, setProducto] = useState(null);
+const ItemDetailContainer = () => {
+  const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { id } = useParams();
 
   useEffect(() => {
-    // Simulamos una promesa con fetch simulado
-    const fetchProducto = () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const productoEncontrado = products.find((p) => p.id === id);
-          resolve(productoEncontrado);
-        }, 1000);
-      });
+    const fetchProduct = async () => {
+      try {
+        const docRef = doc(db, "productos", id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setItem({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          console.warn("Producto no encontrado");
+          setItem(null);
+        }
+      } catch (error) {
+        console.error("Error al traer el producto:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchProducto().then((resultado) => {
-      setProducto(resultado);
-      setLoading(false);
-    });
+    fetchProduct();
   }, [id]);
 
-  if (loading) {
-    return <p>Cargando detalles del producto...</p>;
-  }
+  if (loading) return <p>Cargando producto...</p>;
+  if (!item) return <p>Producto no encontrado.</p>;
 
-  if (!producto) {
-    return <p>Producto no encontrado.</p>;
-  }
-
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h2>{producto.title}</h2>
-      <img src={producto.image} alt={producto.title} width="200" />
-      <p>{producto.description}</p>
-      <p><strong>Precio:</strong> ${producto.price}</p>
-    </div>
-  );
-}
+  return <ItemDetail {...item} />;
+};
 
 export default ItemDetailContainer;

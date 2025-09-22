@@ -1,10 +1,9 @@
-import React from 'react';
-import Item from './Item';
+import Item from "./Item";
 
-const ItemList = ({ items }) => {
+const ItemList = ({ products }) => {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-      {items.map(product => (
+    <div className="item-list">
+      {products.map((product) => (
         <Item key={product.id} product={product} />
       ))}
     </div>
