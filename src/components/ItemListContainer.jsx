@@ -1,34 +1,28 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import ItemList from "./ItemList";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
 
-function ItemListContainer() {
+const ItemListContainer = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { categoryId } = useParams();
 
   useEffect(() => {
-    const productsRef = collection(db, "productos");
-
-    const q = categoryId
-      ? query(productsRef, where("category", "==", categoryId))
-      : productsRef;
+    const db = getFirestore();
+    const productsCollection = collection(db, "productos");
+    const q = categoryId ? query(productsCollection, where("category", "==", categoryId)) : productsCollection;
 
     getDocs(q)
-      .then((res) => {
-        setProducts(
-          res.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        );
+      .then((snapshot) => {
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProducts(data);
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch((error) => console.error(error));
   }, [categoryId]);
 
-  if (loading) return <p>Cargando productos o no hay productos disponibles...</p>;
+  if (products.length === 0) return <p>Cargando productos...</p>;
 
   return <ItemList products={products} />;
-}
+};
 
 export default ItemListContainer;
