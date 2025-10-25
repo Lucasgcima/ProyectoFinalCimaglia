@@ -1,87 +1,100 @@
-import { useContext, useState } from "react";
+import { useState, useContext } from "react";
 import { CartContext } from "../context/CartContext";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
-import { Link } from "react-router-dom";
+import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 
-const Checkout = () => {
-  const { cart, total, clearCart } = useContext(CartContext);
-  const [orderId, setOrderId] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-  });
+export default function Checkout() {
+  const { cart, totalPrice, clearCart } = useContext(CartContext);
+
+  const [buyer, setBuyer] = useState({ name: "", email: "", phone: "" });
+  const [orderId, setOrderId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const db = getFirestore();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setBuyer({
+      ...buyer,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!buyer.name || !buyer.email || !buyer.phone) {
+      alert("Por favor completá todos los campos");
+      return;
+    }
+
     const order = {
-      buyer: form,
-      items: cart,
-      total: total(),
-      date: new Date(),
+      buyer,
+      items: cart.map((prod) => ({
+        id: prod.id,
+        title: prod.title,
+        price: prod.price,
+        quantity: prod.quantity,
+      })),
+      total: totalPrice(),
+      date: Timestamp.fromDate(new Date()),
     };
 
     try {
+      setLoading(true);
       const ordersRef = collection(db, "orders");
       const docRef = await addDoc(ordersRef, order);
       setOrderId(docRef.id);
       clearCart();
     } catch (error) {
-      console.error("Error al generar la orden: ", error);
+      console.error("Error generando la orden:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (orderId) {
     return (
-      <div>
-        <h2>¡Gracias por tu compra!</h2>
-        <p>Tu número de orden es: <strong>{orderId}</strong></p>
-        <Link to="/">Volver al inicio</Link>
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <h2>✅ ¡Compra realizada con éxito!</h2>
+        <p>Tu número de orden es:</p>
+        <strong>{orderId}</strong>
+        <p>Gracias por confiar en Cimaglia Turismo.</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2>Finalizar compra</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ padding: "20px" }}>
+      <h2>Completa tus datos</h2>
+
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", maxWidth: "400px", gap: "10px" }}>
         <input
           type="text"
           name="name"
-          placeholder="Nombre"
-          value={form.name}
+          placeholder="Nombre y apellido"
+          value={buyer.name}
           onChange={handleChange}
           required
         />
-        <br />
-        <input
-          type="text"
-          name="phone"
-          placeholder="Teléfono"
-          value={form.phone}
-          onChange={handleChange}
-          required
-        />
-        <br />
         <input
           type="email"
           name="email"
-          placeholder="Email"
-          value={form.email}
+          placeholder="Correo electrónico"
+          value={buyer.email}
           onChange={handleChange}
           required
         />
-        <br />
-        <button type="submit">Generar orden</button>
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Teléfono"
+          value={buyer.phone}
+          onChange={handleChange}
+          required
+        />
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Generando orden..." : "Generar orden"}
+        </button>
       </form>
     </div>
   );
-};
-
-export default Checkout;
+}

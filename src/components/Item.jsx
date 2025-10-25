@@ -1,16 +1,18 @@
-const Item = ({ product }) => {
+import { Link } from "react-router-dom";
+
+export default function Item({ product }) {
   return (
-    <div className="item-card">
-      <img 
-        src={`/images/${product.image}`} 
-        alt={product.title} 
-        style={{ width: "200px", height: "150px", objectFit: "cover" }}
+    <div className="card item-card">
+      <img
+        className="product-image"
+        src={`${import.meta.env.BASE_URL}images/${product.image}`}
+        alt={product.title}
       />
       <h3>{product.title}</h3>
-      <p>{product.description}</p>
-      <p><strong>${product.price}</strong></p>
+      <p>${product.price}</p>
+      <Link to={`/item/${product.id}`} className="btn-detail">
+        Ver más
+      </Link>
     </div>
   );
-};
-
-export default Item;
+}
