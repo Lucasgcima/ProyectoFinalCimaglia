@@ -21,10 +21,11 @@ export default function Cart() {
       {cart.map((item) => (
         <div key={item.id} className="cart-item">
           <img
-            src={`${import.meta.env.BASE_URL}images/${item.image}`}
-            alt={item.title}
-            className="cart-item-img"
-          />
+  className="cart-img"
+  src={`${import.meta.env.BASE_URL}images/${item.image}`}
+  alt={item.title}
+/>
+
           <div className="cart-item-info">
             <h3>{item.title}</h3>
             <p>Precio: ${item.price}</p>
